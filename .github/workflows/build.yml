@@ -1,0 +1,39 @@
+name: Build Sendora APK
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Extract Sendora
+        run: |
+          unzip -q sendora_build.zip -d sendora
+          test -f sendora/settings.gradle.kts
+
+      - name: Build APK
+        working-directory: sendora
+        run: gradle :app:assembleDebug
+
+      - name: Save APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: sendora-apk
+          path: sendora/app/build/outputs/apk/debug/*.apk
